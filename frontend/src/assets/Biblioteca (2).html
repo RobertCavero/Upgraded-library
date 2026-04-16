@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca</title>
+    <style>
+        :root {
+          --azul-claro: #f8fafc;
+          --branco: #fff;
+          --cinza: #6b7280;
+          --azul: #2563eb;
+          --sombra: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+        
+        body {
+          font-family: 'Segoe UI', system-ui, sans-serif;
+          background: var(--azul-claro);
+          color: #1f2937;
+          line-height: 1.4;
+        }
+        
+        .topo {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .conteudo {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .subtitulo {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .busca-area {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.8rem;
+        }
+        
+        .campo-busca {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-busca {
+            padding: 0.8rem 1.5rem;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .btn-busca:hover {
+            background: #0284c7;
+        }
+        
+        .filtros {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        
+        .filtro-btn {
+            background: var(--branco);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .filtro-btn:hover {
+            border-color: #d1d5db;
+        }
+        
+        .filtro-btn.ativo {
+            background: var(--azul);
+            color: white;
+        }
+        
+        .livros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .livro-card {
+            background: var(--branco);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px var(--sombra);
+            display: flex;
+            gap: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .livro-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .capa-livro {
+            width: 70px;
+            height: 95px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #e5e7eb;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .inf-livro {
+            flex: 1;
+        }
+        
+        .titulo-livro {
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+        
+        .autor-livro {
+            color: var(--cinza);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tags-livro {
+            font-size: 0.8rem;
+            color: var(--cinza);
+        }
+        
+        .rodape {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--cinza);
+            margin-top: 3rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+        }
+        
+        .modal.aberto {
+            display: flex;
+        }
+        
+        .modal-conteudo {
+            background: var(--branco);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+        
+        .modal-titulo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .btn-fechar {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--cinza);
+            padding: 0.2rem;
+        }
+        
+        .modal-body {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .modal-capa {
+            width: 130px;
+            height: 180px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #e5e7eb;
+            flex-shrink: 0;
+        }
+        
+        .modal-info {
+            flex: 1;
+        }
+        
+        .modal-autor {
+            color: var(--cinza);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal-isbn {
+            color: var(--cinza);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-descricao {
+            line-height: 1.5;
+            color: #374151;
+        }
+        
+        .sem-livros {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--cinza);
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .livros-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+            
+            .modal-body {
+                flex-direction: column;
+            }
+            
+            .modal-capa {
+                align-self: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .livros-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .busca-area {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topo">
+        <div class="conteudo">
+            <h1>Biblioteca de xique xique - bahia</h1>
+            <p class="subtitulo">Seja bem-vindo</p>
+            
+            <div class="busca-area">
+                <input type="text" class="campo-busca" id="inputBusca" placeholder="Buscar livro ou autor...">
+                <button class="btn-busca" id="btnBuscar">Buscar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="conteudo">
+        <div class="filtros">
+            <button class="filtro-btn ativo" data-cat="todos">Todos</button>
+            <button class="filtro-btn" data-cat="Suspense">Suspense</button>
+            <button class="filtro-btn" data-cat="Romance">Romance</button>
+            <button class="filtro-btn" data-cat="Comedia">Comédia</button>
+            <button class="filtro-btn" data-cat="Infantil">Infantil</button>
+            <button class="filtro-btn" data-cat="Terror">Terror</button>
+        </div>
+
+        <section id="areaLivros">
+            <div id="gridLivros" class="livros-grid"></div>
+            <div id="msgVazio" class="sem-livros" style="display: none;">
+                Nenhum livro encontrado. Tente outra busca.
+            </div>
+        </section>
+    </main>
+
+    <footer class="rodape">
+        <div class="conteudo">
+            Biblioteca Municipal © 2026 - Por alunos bonitos :p
+        </div>
+    </footer>
+
+    <div class="modal" id="modalDetalhes">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <h2 class="modal-titulo" id="modalTitulo"></h2>
+                <button class="btn-fechar" id="btnFecharModal">×</button>
+            </div>
+            <div class="modal-body">
+                <img class="modal-capa" id="modalCapa" alt="Capa do livro">
+                <div class="modal-info">
+                    <p class="modal-autor" id="modalAutor"></p>
+                    <p class="modal-isbn" id="modalIsbn"></p>
+                    <p class="modal-descricao" id="modalDescricao"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const livros = [
+            {
+                id: 1,
+                titulo: 'A Volta dos que não foram',
+                autor: 'Gabriella Souza',
+                cat: 'Suspense',
+                isbn: '978-85-0000-000-1',
+                desc: 'Um livro sobre uma familia que parte em uma viagem, mas acaba sofrendo um terrível destino.',
+                img: 'https://a.imagem.app/Bgz7FQ.png',
+                novo: true
+            },
+            {
+                id: 2,
+                titulo: 'as longas tranças de um careca',
+                autor: 'Anderson Silva ',
+                cat: 'Romance',
+                isbn: '978-85-0000-000-2', 
+                desc: 'História de um calvo triste, mas que encontra sua felicidade em outras mãos.',
+                img: 'https://a.imagem.app/Bgz6zr.png',
+                novo: false
+            },
+            {
+                id: 3,
+                titulo: 'A biblioteca do analfabeto',
+                autor: 'Alan J Kobe',
+                cat: 'Comedia',
+                isbn: '978-85-0000-000-3',
+                desc: 'Acompanhe as aventuras desse analfabeto trapalhão.',
+                img: 'https://a.imagem.app/BgzxBl.png',
+                novo: true
+            },
+            {
+                id: 4,
+                titulo: 'Os trapalhões na guerra da ucrania',
+                autor: 'Dr. Renato didi', 
+                cat: 'Infantil',
+                isbn: '978-85-0000-000-4',
+                desc: ' Acompanhe os trapalhões nas trincheiras em uma guerra contra os ursos polares ',
+                img: 'https://a.imagem.app/BgzFvP.md.png',
+                novo: false
+            },
+            {
+                id: 5,
+                titulo: 'crepusculo se o edward fosse o lobisomem',
+                autor: 'Luva de pedreiro',
+                cat: 'Terror',
+                isbn: '978-85-0000-000-5',
+                desc: 'E se o vampiro e o lobisomem trocassem de lugar?',
+                img: 'https://a.imagem.app/Bgz9fi.png',
+                novo: false
+            }
+        ];
+
+        const grid = document.getElementById('gridLivros');
+        const vazio = document.getElementById('msgVazio');
+        const busca = document.getElementById('inputBusca');
+        const btn = document.getElementById('btnBuscar');
+        const filtros = document.querySelectorAll('.filtro-btn');
+        const modal = document.getElementById('modalDetalhes');
+        const fechar = document.getElementById('btnFecharModal');
+
+        function mostrar(livros) {
+            grid.innerHTML = '';
+            
+            if (livros.length === 0) {
+                vazio.style.display = 'block';
+                return;
+            }
+            
+            vazio.style.display = 'none';
+            
+            livros.forEach(l => {
+                const card = document.createElement('div');
+                card.className = 'livro-card';
+                
+                const novo = l.novo ? '<span style="color: #10b981; font-size: 0.8rem;"> • NOVO</span>' : '';
+                
+                card.innerHTML = `
+                    <img class="capa-livro" src="${l.img}" alt="Capa do livro ${l.titulo}">
+                    <div class="inf-livro">
+                        <h3 class="titulo-livro">${l.titulo}${novo}</h3>
+                        <p class="autor-livro">${l.autor}</p>
+                        <p class="tags-livro">${l.cat} • ISBN ${l.isbn}</p>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    abrirModal(l);
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function abrirModal(l) {
+            document.getElementById('modalTitulo').textContent = l.titulo;
+            document.getElementById('modalAutor').textContent = `por ${l.autor}`;
+            document.getElementById('modalDescricao').textContent = l.desc;
+            document.getElementById('modalIsbn').textContent = `ISBN: ${l.isbn}`;
+            document.getElementById('modalCapa').src = l.img;
+            document.getElementById('modalCapa').alt = `Capa do livro ${l.titulo}`;
+            
+            modal.classList.add('aberto');
+        }
+
+        function fecharModal() {
+            modal.classList.remove('aberto');
+        }
+
+        function buscar() {
+            const txt = busca.value.trim().toLowerCase();
+            const filtro = document.querySelector('.filtro-btn.ativo');
+            const cat = filtro ? filtro.getAttribute('data-cat') : 'todos';
+            
+            const res = livros.filter(l => {
+                if (cat !== 'todos' && l.cat !== cat) {
+                    return false;
+                }
+                
+                if (txt) {
+                    return l.titulo.toLowerCase().includes(txt) || 
+                           l.autor.toLowerCase().includes(txt);
+                }
+                
+                return true;
+            });
+            
+            mostrar(res);
+        }
+
+        btn.addEventListener('click', buscar);
+        
+        busca.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                buscar();
+            }
+        });
+
+        filtros.forEach(f => {
+            f.addEventListener('click', () => {
+                filtros.forEach(b => b.classList.remove('ativo'));
+                f.classList.add('ativo');
+                buscar();
+            });
+        });
+
+        fechar.addEventListener('click', fecharModal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                fecharModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('aberto')) {
+                fecharModal();
+            }
+        });
+
+        mostrar(livros);
+    </script>
+</body>
+</html>
