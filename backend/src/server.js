@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "cors";
 
 import express from "express";
 
@@ -8,10 +9,15 @@ import bookRoutes from "./routes/bookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import booklistRoutes from "./routes/booklistRoutes.js";
 
-//pode ser interessante adicionar async pra só rodar o server se conectado a database
-connectDB();
-
 const app = express();
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -19,29 +25,56 @@ app.use("/books", bookRoutes);
 app.use("/auth", authRoutes);
 app.use("/booklist", booklistRoutes);
 
-app.listen(process.env.PORT || 5001, "0.0.0.0", () => {
-  console.log(`Server running on PORT ${process.env.PORT} `);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
 
+    const server = app.listen(process.env.PORT || 5001, "0.0.0.0", () => {
+      console.log(`Server running on PORT ${process.env.PORT || 5001}`);
+    });
 
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  server.close(async () => {
-    await disconnectDB();
+    setupGracefulShutdown(server);
+  } catch (err) {
+    console.error("Failed to connect to DB:", err);
     process.exit(1);
-  });
-});
+  }
+};
 
-process.on("uncaughtException", async (err) => {
-  console.error("Uncaught Exception:", err);
-  await disconnectDB();
-  process.exit(1);
-});
+startServer();
 
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(async () => {
-    await disconnectDB();
-    process.exit(0);
+const setupGracefulShutdown = (server) => {
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    server.close(async () => {
+      await disconnectDB();
+      process.exit(1);
+    });
   });
-});
+
+  process.on("uncaughtException", async (err) => {
+    console.error("Uncaught Exception:", err);
+    try {
+      await disconnectDB();
+    } catch (dbErr) {
+      console.error("Error during DB disconnect:", dbErr);
+    } finally {
+      process.exit(1);
+    }
+  });
+
+  process.on("SIGTERM", async () => {
+    console.log("SIGTERM received, shutting down gracefully");
+
+    setTimeout(() => {
+      console.error(
+        "Could not close connections in time, forcefully shutting down",
+      );
+      process.exit(1);
+    }, 10000);
+    server.close(async () => {
+      await disconnectDB();
+      console.log("Closed out remaining connections");
+      process.exit(0);
+    });
+  });
+};
