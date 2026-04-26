@@ -14,6 +14,7 @@ const books = [
     author: "Emily Carter",
     releaseYear: 2018,
     desc: "Uma floresta misteriosa onde pessoas desaparecem sem deixar rastros.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Mistério", "Suspense"],
     new: false,
     createdBy: userId,
@@ -23,6 +24,7 @@ const books = [
     author: "Lucas Andrade",
     releaseYear: 2022,
     desc: "Uma jornada pelo espaço e pela resiliência humana.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Ficção Científica", "Aventura"],
     new: true,
     createdBy: userId,
@@ -32,6 +34,7 @@ const books = [
     author: "Mariana Silva",
     releaseYear: 2015,
     desc: "Segredos do passado voltam para assombrar uma pequena cidade.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Drama", "Mistério"],
     new: false,
     createdBy: userId,
@@ -41,6 +44,7 @@ const books = [
     author: "Robert King",
     releaseYear: 2020,
     desc: "Um império caído luta para se reerguer.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Fantasia", "Ação"],
     new: true,
     createdBy: userId,
@@ -50,6 +54,7 @@ const books = [
     author: "Ana Costa",
     releaseYear: 2017,
     desc: "Uma detetive descobre uma conspiração escondida.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Crime", "Suspense"],
     new: false,
     createdBy: userId,
@@ -68,6 +73,7 @@ const books = [
     author: "Fernanda Rocha",
     releaseYear: 2019,
     desc: "Uma jornalista expõe um segredo perigoso.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Suspense", "Drama"],
     new: false,
     createdBy: userId,
@@ -77,6 +83,7 @@ const books = [
     author: "João Pereira",
     releaseYear: 2016,
     desc: "Uma história de destino e coragem através de reinos.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Fantasia", "Aventura"],
     new: false,
     createdBy: userId,
@@ -86,6 +93,7 @@ const books = [
     author: "Beatriz Alves",
     releaseYear: 2023,
     desc: "Encontrando esperança em um mundo destruído.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Drama", "Romance"],
     new: true,
     createdBy: userId,
@@ -95,6 +103,7 @@ const books = [
     author: "Rafael Souza",
     releaseYear: 2024,
     desc: "Um hacker se envolve em uma conspiração global.",
+    img: "https://a.imagem.app/GzTEvv.png",
     genre: ["Tecnologia", "Suspense"],
     new: true,
     createdBy: userId,
@@ -123,3 +132,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
