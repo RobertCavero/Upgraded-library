@@ -8,6 +8,8 @@ import { connectDB, disconnectDB } from "./config/db.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import booklistRoutes from "./routes/booklistRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js"
+
 
 const app = express();
 
@@ -24,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/books", bookRoutes);
 app.use("/auth", authRoutes);
 app.use("/booklist", booklistRoutes);
+app.use("/admin", adminRoutes);
 
 const startServer = async () => {
   try {
