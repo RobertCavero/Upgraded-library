@@ -1,0 +1,9 @@
+
+.book-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+  padding: 20px;
+}

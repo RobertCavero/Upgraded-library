@@ -1,26 +1,39 @@
-import React from 'react'
-import "./Navbar.css"
-
+import React from "react";
+import "./Navbar.css";
+import bookIcon from "../../assets/book-icon.svg";
+import GlowBorder from "../Effects/GlowBorder/GlowBorder";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className='navbar'>
-        <div className='navbar-logo'>Logo</div>
-        
-        <ul className='navbar-links'>
-            <li><a href='#'>Home</a></li>
-            <li><a href="#">Sobre</a></li>
-            <li><a href="#">Contato</a></li>
-        </ul>
+    <div className="navbar-wrapper">
+      <GlowBorder speed={3}>
+        <div className="navbar">
+          <img className="navbar-logo" src={bookIcon} alt="book-icon" />
 
-        <div className='btns'>
-            <button className='btn-login'>Login</button>
-            <button className='btn-registro'>Registrar</button>
+          <ul className="navbar-links">
+            <li>
+              <a href="#">Home</a>
+            </li>
+            <li>
+              <a href="#">Sobre</a>
+            </li>
+            <li>
+              <a href="#">Contato</a>
+            </li>
+          </ul>
+
+          <div className="btns">
+            <button className="btn-login" onClick={() => navigate("/login")}>
+              Login / Registrar
+            </button>
+          </div>
         </div>
-
+      </GlowBorder>
     </div>
-    
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

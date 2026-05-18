@@ -1,0 +1,120 @@
+.userpage {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.userpage-wrapper {
+  width: 80%;
+  height: 80%;
+  background-color: white;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.upperbox {
+  width: 80%;
+  height: 40%;
+  background-color: #f7fbff;
+  border: 1px solid black;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.left-profile {
+  background-color: #e3f6ff;
+  border: 1px solid black;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-img {
+  height: 400px;
+  width: 400px;
+  filter: drop-shadow(0 0 3px #4fc3f7);
+}
+
+.user-name {
+  color: #1c2b39;
+  padding: 2px 4px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+.user-id {
+  color: #1c2b39;
+  padding: 2px 4px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+.right-profile {
+  color: #1c2b39;
+  padding: 2px 8px;
+}
+
+.user-tabs {
+  display: flex;
+  padding: 10px;
+  list-style: none;
+  gap: 10px;
+}
+
+.user-tabs li {
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(79, 195, 247, 0.15);
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #ffd166, #ffbf4d);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.user-tabs li a {
+  text-decoration: none;
+  color: #1c2b39;
+  display: block;
+  font-family: "Segoe UI", "Inter", sans-serif;
+  transition: color 0.2s ease;
+  padding: 4px;
+}
+
+.user-tabs li:hover a {
+  color: #0f1a24;
+}
+
+.user-tabs li::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
+  height: 2px;
+
+  background: #1c2b39;
+  transform: scaleX(0);
+  transform-origin: left;
+
+  transition: transform 0.25s ease;
+}
+
+.user-tabs li:hover::after {
+  transform: scaleX(1);
+}
+
+.user-tabs li:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 15px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(79, 195, 247, 0.25);
+}
+
+.user-tab-content{
+  width: 100%;
+}

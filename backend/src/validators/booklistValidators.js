@@ -20,5 +20,8 @@ const addToBooklistSchema = z.object({
   notes: z.string().optional(),
 });
 
+const toggleFavoriteSchema = z.object({
+  bookId: z.string().uuid(),
+});
 
-export {addToBooklistSchema}
+export {addToBooklistSchema, toggleFavoriteSchema}

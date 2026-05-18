@@ -1,0 +1,44 @@
+.glow-border {
+  position: relative;
+  display: inline-block;
+  border-radius: 40px;
+  padding: 2px; /* thickness of the glow border */
+  background: transparent; /* 👈 prevents blending with navbar/page */
+  overflow: hidden;
+}
+
+/* animated glowing layer */
+.glow-border__effect {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  /* the magic gradient */
+  background: linear-gradient(
+    90deg,
+    #7fefff,
+    #4facfe,
+    #6a85ff,
+    #a18cd1,
+    #6a85ff,
+    #4facfe,
+    #7fefff
+  );
+
+  background-size: 200% 200%;
+  filter: blur(6px);
+  opacity: 0.8;
+
+  z-index: 0;
+}
+
+/* inner content container */
+.glow-border__inner {
+  position: relative;
+  z-index: 1;
+
+  background: transparent; /* or transparent if you want glass effect */
+  border-radius: inherit;
+
+  padding: 1px;
+}

@@ -1,0 +1,15 @@
+.login-page {
+    width: 100%;
+    height: 100vh;
+
+    background:
+        radial-gradient(circle at top left, rgba(128, 0, 255, 0.35), transparent 40%),
+        radial-gradient(circle at bottom right, rgba(80, 0, 120, 0.4), transparent 40%),
+        linear-gradient(135deg, #0b0613, #140a1f, #1a1028);
+
+    backdrop-filter: blur(10px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
