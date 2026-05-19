@@ -107,44 +107,42 @@
 
   .carousel-container {
     width: 100%;
-    max-width: 320px; /* Limita o tamanho máximo do container no mobile para o card não esticar infinitamente */
-    margin: 20px auto;
-    padding: 0; /* Remove os paddings para os botões fixados nas pontas fazerem sentido */
-    position: relative;
+    padding: 0 15px; /* Margem interna para os botões não colarem na borda física do celular */
+    box-sizing: border-box;
   }
 
   .cards-wrapper {
-    width: 100%; 
-    min-height: auto;
-    gap: 0; /* Como só há 1 card, não precisamos de gap */
-    justify-content: center; /* Centraliza o card único perfeitamente */
-    padding: 10px 0; /* Espaço para a sombra do card no hover */
+    width: 100%;     /* Remove os 700px fixos */
+    gap: 15px;       /* Encurta um pouco o espaço entre os cards no mobile */
+    overflow-x: auto; /* Permite que o usuário arraste os cards com o dedo se quiser */
+    padding: 10px;   /* Espaço para a sombra do (:hover) não ser cortada */
+    justify-content: flex-start; /* Alinha os cards ao início para permitir o scroll */
     
-    /* Removemos o overflow-x: auto já que o controle agora é 100% pelos botões do React */
-    overflow: visible; 
+    /* Esconde a barra de rolagem feia do sistema para parecer um carrossel nativo */
+    scrollbar-width: none; 
+  }
+  
+  .cards-wrapper::-webkit-scrollbar {
+    display: none; 
   }
 
   .card {
-    /* O card agora ocupa toda a largura do container (descontando espaço para os botões se preferir) */
-    width: 100%; 
-    max-width: 240px; /* Define um tamanho ideal para o card no mobile */
-    flex: 0 0 auto;  /* Reseta a propriedade anterior */
+    flex: 0 0 220px; /* Garante que o card mantenha o tamanho de 220px e não encolha */
   }
 
-  /* Reposiciona os botões nas laterais do card único */
+  /* Reposiciona os botões para dentro do container no mobile */
   .prev-btn {
-    left: -25px; /* Joga o botão ligeiramente para fora do card para não cobrir a imagem */
+    left: 10px;
   }
 
   .next-btn {
-    right: -25px; /* Joga o botão ligeiramente para fora do card para não cobrir a imagem */
+    right: 10px;
   }
 
   .prev-btn,
   .next-btn {
-    background: rgba(0, 0, 0, 0.75);
-    width: 38px;  
-    height: 38px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Adiciona uma sombra para destacar o botão sobre o fundo */
+    background: rgba(0, 0, 0, 0.75); /* Escurece um pouco para dar mais contraste sobre os cards */
+    width: 36px;  /* Leve redução de tamanho para telas menores */
+    height: 36px;
   }
 }
