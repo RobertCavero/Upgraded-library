@@ -2,6 +2,9 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../config/db.js";
 
 export const authMiddleware = async (req, res, next) => {
+
+  console.log("Cookies recebidos:", req.cookies);
+  console.log("Header Authorization:", req.headers.authorization);
   let token;
 
   // 1. Check Authorization Header or HttpOnly Cookies

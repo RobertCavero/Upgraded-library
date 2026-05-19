@@ -1,21 +1,29 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./LibraryDisplay.css";
 
-// Move utility functions outside the component so they aren't recreated on every render
-const normalizeText = (text) =>
-  String(text ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-// Configure a base axios instance to avoid repeating URLs and configs
+// 1. Criamos a instância padronizada igual fizemos na Navbar
 const api = axios.create({
   baseURL: "https://upgraded-library.onrender.com",
   withCredentials: true,
 });
 
+// 2. O Interceptor injeta o Token do localStorage em TODAS as chamadas automaticamente
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("userToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const LibraryDisplay = () => {
+  const normalizeText = (text) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
   const [books, setBooks] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [booklist, setBooklist] = useState([]);
@@ -24,98 +32,78 @@ const LibraryDisplay = () => {
   const [showAll, setShowAll] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Fetch user data (Favorites & Booklist) if logged in
-  const fetchUserData = useCallback(async () => {
-    try {
-      // Run both requests in parallel to save time
-      const [favRes, listRes] = await Promise.all([
-        api.get("/favorites"),
-        api.get("/booklist"),
-      ]);
+  useEffect(() => {
+    // 1. Busca pública de livros (Sempre acontece, logado ou não)
+    api
+      .get("/books")
+      .then((res) => {
+        setBooks(res.data.data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar livros:", err);
+        setLoading(false);
+      });
 
-      const favList = favRes.data?.data?.favorites;
-      if (Array.isArray(favList)) {
-        setFavorites(favList.map((item) => item.bookId));
-      }
+    // 2. A TRAVA: Verifica se o token existe antes de perturbar o backend
+    const token = localStorage.getItem("userToken");
 
-      if (Array.isArray(listRes.data)) {
-        setBooklist(listRes.data.map((item) => item.bookId || item.id));
-      }
-    } catch (err) {
-      console.error("Error fetching user library data:", err);
+    if (!token) {
+      return; // Para por aqui! Não faz o /auth/me se não tem token.
     }
+
+    // 3. Verifica usuário e busca listas protegidas (Só roda se passou da trava acima)
+    api
+      .get("/auth/me")
+      .then(() => {
+        setIsLoggedIn(true);
+
+        api
+          .get("/favorites")
+          .then((res) => {
+            const favList = res.data?.data?.favorites;
+            if (Array.isArray(favList)) {
+              setFavorites(favList.map((item) => item.bookId));
+            }
+          })
+          .catch((err) => console.error("Erro ao buscar favoritos:", err));
+
+        api
+          .get("/booklist")
+          .then((res) => {
+            if (Array.isArray(res.data)) {
+              setBooklist(res.data.map((item) => item.bookId || item.id));
+            }
+          })
+          .catch((err) => console.error("Erro ao buscar booklist:", err));
+      })
+      .catch(() => {
+        // Se o token existir mas estiver expirado, ele cai aqui
+        setIsLoggedIn(false);
+      });
   }, []);
 
-  // Main initialization effect
-  useEffect(() => {
-    let isMounted = true;
-
-    const initializeData = async () => {
-      try {
-        // 1. Fetch public books
-        const booksRes = await api.get("/books");
-        if (isMounted) setBooks(booksRes.data?.data || []);
-
-        // 2. Check Authentication
-        await api.get("/auth/me");
-        if (isMounted) {
-          setIsLoggedIn(true);
-          await fetchUserData();
-        }
-      } catch (err) {
-        console.error(
-          "Initialization error (User might be unauthenticated):",
-          err,
-        );
-        if (isMounted) setIsLoggedIn(false);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    initializeData();
-
-    return () => {
-      isMounted = false; // Clean up to prevent memory leaks on unmounted component
-    };
-  }, [fetchUserData]);
-
-  // Toggle Booklist
   const toggleBooklist = async (bookId) => {
     if (!isLoggedIn) {
       alert("Você precisa estar logado para gerenciar sua lista!");
       return;
     }
-
     const inList = booklist.includes(bookId);
-
-    // Optimistic UI updates update state instantly for a snappy feel, revert if API fails
-    const previousBooklist = [...booklist];
-    const previousFavorites = [...favorites];
-
-    if (inList) {
-      setBooklist((prev) => prev.filter((id) => id !== bookId));
-      setFavorites((prev) => prev.filter((id) => id !== bookId)); // Removing from booklist removes from favs
-    } else {
-      setBooklist((prev) => [...prev, bookId]);
-    }
 
     try {
       if (inList) {
         await api.delete(`/booklist/${bookId}`);
+        setBooklist(booklist.filter((id) => id !== bookId));
+        setFavorites(favorites.filter((id) => id !== bookId));
       } else {
         await api.post("/booklist", { bookId });
+        setBooklist([...booklist, bookId]);
       }
     } catch (err) {
       console.error("Erro ao atualizar booklist:", err);
-      alert("Não foi possível atualizar sua lista. Tente novamente.");
-      // Rollback state on failure
-      setBooklist(previousBooklist);
-      setFavorites(previousFavorites);
     }
   };
 
-  // Toggle Favorite
   const toggleFavorite = async (bookId) => {
     if (!isLoggedIn) {
       alert("Você precisa estar logado para favoritar um livro!");
@@ -128,47 +116,36 @@ const LibraryDisplay = () => {
     }
 
     const isFav = favorites.includes(bookId);
-    const previousFavorites = [...favorites];
-
-    // Optimistic update
-    setFavorites((prev) =>
-      isFav ? prev.filter((id) => id !== bookId) : [...prev, bookId],
-    );
 
     try {
       if (isFav) {
         await api.delete(`/favorites/${bookId}`);
+        setFavorites(favorites.filter((id) => id !== bookId));
       } else {
-        await api.post(`/favorites/${bookId}`);
+        // Agora o post não precisa mais do config manual, o 'api' faz sozinho
+        await api.post(`/favorites/${bookId}`, {});
+        setFavorites([...favorites, bookId]);
       }
     } catch (err) {
       console.error("Erro ao atualizar favorito:", err);
       alert("Não foi possível atualizar o favorito.");
-      setFavorites(previousFavorites); // Rollback
     }
   };
 
-  // Memoize filtering so it doesn't run on unrelated state changes (like showAll toggles)
-  const filteredBooks = useMemo(() => {
+  const filteredBooks = books.filter((book) => {
+    const title = normalizeText(book.title ?? "");
+    const author = normalizeText(book.author ?? "");
     const query = normalizeText(search);
-    if (!query) return books;
+    return title.includes(query) || author.includes(query);
+  });
 
-    return books.filter((book) => {
-      const title = normalizeText(book.title);
-      const author = normalizeText(book.author);
-      return title.includes(query) || author.includes(query);
-    });
-  }, [books, search]);
-
-  const displayedBooks = useMemo(() => {
-    return showAll ? filteredBooks : filteredBooks.slice(0, 3);
-  }, [filteredBooks, showAll]);
+  const displayedBooks = showAll ? filteredBooks : filteredBooks.slice(0, 3);
 
   return (
     <div className="library-container">
       <input
         type="text"
-        placeholder="Procure por título ou autor..."
+        placeholder="Procure por titulo ou autor..."
         className="search-bar"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -208,12 +185,7 @@ const LibraryDisplay = () => {
                   </button>
                 </div>
 
-                <img
-                  className="img-book"
-                  src={book.img}
-                  alt={book.title}
-                  loading="lazy"
-                />
+                <img className="img-book" src={book.img} alt={book.title} />
                 <p className="book-title">{book.title}</p>
                 <p className="book-author">{book.author}</p>
                 <p className="book-year">{book.releaseYear}</p>

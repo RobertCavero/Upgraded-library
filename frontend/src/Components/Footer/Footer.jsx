@@ -27,7 +27,7 @@ const Footer = () => {
           {/* coluna 3 */}
           <div className="col-md-4">
             <h5>Contato</h5>
-            <p>Email: contato@biblioteca.com</p>
+            <p>Email: contato@upgradedlibrary.com</p>
             <p>Telefone: +55 11 99999-9999</p>
           </div>
 

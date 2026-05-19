@@ -1,155 +1,124 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import axios from "axios";
 
-// Dedicated isolated instance matching your other components
-const api = axios.create({
-  baseURL: "https://upgraded-library.onrender.com/auth",
-  withCredentials: true,
-});
+const API_URL = "https://upgraded-library.onrender.com/auth"; // URL do seu backend
+
+// Se estiver usando Cookies com cookie-parser no backend, descomente a linha abaixo:
+// axios.defaults.withCredentials = true;
 
 export default function AuthTabs() {
-  const navigate = useNavigate();
   const [tab, setTab] = useState("login");
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate(); // <-- CORRIGIDO: Inicialização obrigatória do hook
 
-  // Grouped form states for clean data handling
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [registerData, setRegisterData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  // Estados para o formulário de LOGIN
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
-  const [feedback, setFeedback] = useState({ error: "", success: "" });
+  // Estados para o formulário de REGISTRO
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
 
-  // Refs to clean up asynchronous timers securely if component unmounts
-  const timeoutRef = useRef(null);
+  // Estados para mensagens de Feedback (Sucesso/Erro)
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  useEffect(() => {
-    // Cleanup any pending timeouts on component unmount
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
+  // Limpa os alertas quando troca de aba
   const handleTabChange = (newTab) => {
     setTab(newTab);
-    setFeedback({ error: "", success: "" });
+    setErrorMessage("");
+    setSuccessMessage("");
   };
 
-  // Reusable handler to sync input fields into objects dynamically
-  const handleInputChange = (e, formType) => {
-    const { name, value } = e.target;
-    if (formType === "login") {
-      setLoginData((prev) => ({ ...prev, [name]: value }));
-    } else {
-      setRegisterData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // 1. LOGIN HANDLER
+  // 1. EVENTO DE LOGIN
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setFeedback({ error: "", success: "" });
-    setIsLoading(true);
+    e.preventDefault(); 
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
-      const response = await api.post("/login", {
-        email: loginData.email,
-        password: loginData.password,
+      const response = await axios.post(`${API_URL}/login`, {
+        email: loginEmail,
+        password: loginPassword,
       });
 
-      setFeedback({
-        error: "",
-        success: "Login realizado com sucesso! Redirecionando...",
-      });
+      setSuccessMessage("Login realizado com sucesso!");
       console.log("Dados do Backend:", response.data);
 
-      timeoutRef.current = setTimeout(() => {
-        navigate("/perfil");
+      // Se seu backend retorna o token no JSON e você usa LocalStorage:
+      if (response.data.data?.token) {
+        localStorage.setItem("userToken", response.data.data.token);
+      }
+
+      // CORRIGIDO: Agora o redirecionamento vai funcionar sem quebrar o app
+      setTimeout(() => {
+        navigate("/perfil"); // Altere para a rota correta do seu sistema
       }, 1500);
+
     } catch (error) {
       const message = error.response?.data?.error || "Erro ao fazer login.";
-      setFeedback({ error: message, success: "" });
-      setIsLoading(false);
+      setErrorMessage(message);
     }
   };
 
-  // 2. REGISTER HANDLER
+  // 2. EVENTO DE REGISTRO
   const handleRegister = async (e) => {
     e.preventDefault();
-    setFeedback({ error: "", success: "" });
+    setErrorMessage("");
+    setSuccessMessage("");
 
-    if (registerData.password !== registerData.confirmPassword) {
-      setFeedback({ error: "As senhas não coincidem!", success: "" });
+    if (registerPassword !== registerConfirmPassword) {
+      setErrorMessage("As senhas não coincidem!");
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      await api.post("/register", {
-        name: registerData.name,
-        email: registerData.email,
-        password: registerData.password,
+      const response = await axios.post(`${API_URL}/register`, {
+        name: registerName,
+        email: registerEmail,
+        password: registerPassword,
       });
 
-      setFeedback({
-        error: "",
-        success:
-          "Cadastro realizado com sucesso! Redirecionando para o login...",
-      });
+      console.log(response.data);
 
-      // Reset registration form fields safely
-      setRegisterData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
-
-      timeoutRef.current = setTimeout(() => {
-        handleTabChange("login");
-        setIsLoading(false);
-      }, 2000);
+      setSuccessMessage("Cadastro realizado com sucesso! Faça o login.");
+      
+      // Limpa os campos do registro
+      setRegisterName("");
+      setRegisterEmail("");
+      setRegisterPassword("");
+      setRegisterConfirmPassword("");
+      
+      // Joga o usuário para a aba de login após alguns segundos
+      setTimeout(() => handleTabChange("login"), 2000);
     } catch (error) {
       const message = error.response?.data?.error || "Erro ao registrar.";
-      setFeedback({ error: message, success: "" });
-      setIsLoading(false);
+      setErrorMessage(message);
     }
   };
 
   return (
-    <div
-      className="container mt-5 p-4"
-      style={{
-        maxWidth: "450px",
-        backgroundColor: "white",
-        borderRadius: "15px",
-        boxShadow: "0px 4px 15px rgba(0,0,0,0.08)",
-      }}
-    >
+    <div className="container mt-5 p-4" style={{ maxWidth: "500px", backgroundColor: "white", borderRadius: "15px", boxShadow: "0px 4px 10px rgba(0,0,0,0.1)" }}>
       {/* NAV PILLS */}
       <ul className="nav nav-pills nav-justified mb-4">
         <li className="nav-item">
           <button
             className={`nav-link ${tab === "login" ? "active" : ""}`}
             onClick={() => handleTabChange("login")}
-            disabled={isLoading}
             type="button"
           >
             Login
           </button>
         </li>
+
         <li className="nav-item">
           <button
             className={`nav-link ${tab === "register" ? "active" : ""}`}
             onClick={() => handleTabChange("register")}
-            disabled={isLoading}
             type="button"
           >
             Registrar
@@ -157,30 +126,21 @@ export default function AuthTabs() {
         </li>
       </ul>
 
-      {/* GLOBAL ALERTS */}
-      {feedback.error && (
-        <div className="alert alert-danger p-2 text-center small">
-          {feedback.error}
-        </div>
-      )}
-      {feedback.success && (
-        <div className="alert alert-success p-2 text-center small">
-          {feedback.success}
-        </div>
-      )}
+      {/* ALERTAS DE COMPONENTES */}
+      {errorMessage && <div className="alert alert-danger p-2 text-center">{errorMessage}</div>}
+      {successMessage && <div className="alert alert-success p-2 text-center">{successMessage}</div>}
 
       {/* FORMULÁRIO DE LOGIN */}
       {tab === "login" && (
         <form onSubmit={handleLogin}>
+          {/* CORRIGIDO: Mudança de 'form-outline' para o padrão 'mb-3' do Bootstrap 5 */}
           <div className="mb-3">
             <input
               type="email"
-              name="email"
               className="form-control"
-              placeholder="E-mail"
-              value={loginData.email}
-              onChange={(e) => handleInputChange(e, "login")}
-              disabled={isLoading}
+              placeholder="Email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
               required
             />
           </div>
@@ -188,46 +148,38 @@ export default function AuthTabs() {
           <div className="mb-3">
             <input
               type="password"
-              name="password"
               className="form-control"
               placeholder="Senha"
-              value={loginData.password}
-              onChange={(e) => handleInputChange(e, "login")}
-              disabled={isLoading}
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
               required
             />
           </div>
 
-          <div className="d-flex justify-content-between align-items-center mb-4 small">
-            <label className="form-check-label d-flex align-items-center">
+          {/* CORRIGIDO: Alinhamento e estrutura do checkbox para Bootstrap 5 */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="form-check">
               <input
+                id="rememberMe"
                 type="checkbox"
-                className="form-check-input me-2"
+                className="form-check-input"
                 defaultChecked
-                disabled={isLoading}
               />
-              Lembre-se de mim
-            </label>
-            <a href="#!" className="text-decoration-none">
-              Esqueceu a senha?
-            </a>
+              <label htmlFor="rememberMe" className="form-check-label" style={{ fontSize: "14px" }}>
+                Lembre-se de mim
+              </label>
+            </div>
+            <a href="#!" style={{ fontSize: "14px", textDecoration: "none" }}>Esqueceu a senha?</a>
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-100 mb-3"
-            disabled={isLoading}
-          >
-            {isLoading ? "Processando..." : "Fazer login"}
-          </button>
+          <button type="submit" className="btn btn-primary w-100 mb-3">Fazer login</button>
 
-          <p className="text-center small mb-0">
+          <p className="text-center mb-0">
             Não é membro?{" "}
             <button
               type="button"
-              className="btn btn-link p-0 small text-decoration-none"
+              className="btn btn-link p-0 text-decoration-none"
               onClick={() => handleTabChange("register")}
-              disabled={isLoading}
             >
               Registre-se
             </button>
@@ -239,27 +191,23 @@ export default function AuthTabs() {
       {tab === "register" && (
         <form onSubmit={handleRegister}>
           <div className="mb-3">
-            <input
+            <input 
               type="text"
-              name="name"
-              className="form-control"
-              placeholder="Nome de Usuário"
-              value={registerData.name}
-              onChange={(e) => handleInputChange(e, "register")}
-              disabled={isLoading}
+              className="form-control" 
+              placeholder="Nome de Usuário" 
+              value={registerName}
+              onChange={(e) => setRegisterName(e.target.value)}
               required
             />
           </div>
 
           <div className="mb-3">
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              placeholder="E-mail"
-              value={registerData.email}
-              onChange={(e) => handleInputChange(e, "register")}
-              disabled={isLoading}
+            <input 
+              type="email" 
+              className="form-control" 
+              placeholder="Email" 
+              value={registerEmail}
+              onChange={(e) => setRegisterEmail(e.target.value)}
               required
             />
           </div>
@@ -267,36 +215,26 @@ export default function AuthTabs() {
           <div className="mb-3">
             <input
               type="password"
-              name="password"
               className="form-control"
               placeholder="Senha"
-              value={registerData.password}
-              onChange={(e) => handleInputChange(e, "register")}
-              disabled={isLoading}
+              value={registerPassword}
+              onChange={(e) => setRegisterPassword(e.target.value)}
               required
             />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <input
               type="password"
-              name="confirmPassword"
               className="form-control"
               placeholder="Repita a senha"
-              value={registerData.confirmPassword}
-              onChange={(e) => handleInputChange(e, "register")}
-              disabled={isLoading}
+              value={registerConfirmPassword}
+              onChange={(e) => setRegisterConfirmPassword(e.target.value)}
               required
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-100"
-            disabled={isLoading}
-          >
-            {isLoading ? "Processando..." : "Registrar"}
-          </button>
+          <button type="submit" className="btn btn-primary w-100">Registrar</button>
         </form>
       )}
     </div>
