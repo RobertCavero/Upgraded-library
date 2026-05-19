@@ -9,7 +9,7 @@ import bookRoutes from "./routes/bookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import booklistRoutes from "./routes/booklistRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js"
-
+import favoritesRoutes from "./routes/favoritesRoutes.js"
 
 const app = express();
 
@@ -27,6 +27,7 @@ app.use("/books", bookRoutes);
 app.use("/auth", authRoutes);
 app.use("/booklist", booklistRoutes);
 app.use("/admin", adminRoutes);
+app.use("/favorites", favoritesRoutes)
 
 const startServer = async () => {
   try {
