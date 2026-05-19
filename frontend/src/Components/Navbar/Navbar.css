@@ -54,11 +54,20 @@
   transition: 0.3s;
 }
 
+.navbar-links li a:link,
+.navbar-links li a:visited {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+}
+
 .navbar-links li a:hover {
   text-decoration: none;
   color: rgb(0, 0, 0);
   font-size: 20px;
+  cursor: pointer;
 }
+
+
 
 .btns {
   display: flex;

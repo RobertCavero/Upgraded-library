@@ -3,6 +3,7 @@ import "./Navbar.css";
 import bookIcon from "../../assets/book-icon.svg";
 import GlowBorder from "../Effects/GlowBorder/GlowBorder";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -15,13 +16,13 @@ const Navbar = () => {
 
           <ul className="navbar-links">
             <li>
-              <a href="#">Home</a>
+              <Link to="/">Inicio</Link>
             </li>
             <li>
-              <a href="#">Sobre</a>
+              <Link to="/catalogo">Catálogo</Link>
             </li>
             <li>
-              <a href="#">Contato</a>
+              <Link to="/contato">Contato</Link>
             </li>
           </ul>
 

@@ -4,9 +4,16 @@
   justify-content: space-between;
   height: 100vh;
   padding: 0 80px;
-  background: #f7f7f7;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
   box-sizing: border-box;
   overflow: hidden;
+  background-image:
+    radial-gradient(
+      circle at 70% 30%,
+      rgba(2, 132, 199, 0.18) 0%,
+      transparent 60%
+    ),
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
 }
 
 /* LEFT SIDE */
@@ -24,14 +31,14 @@
 .hero-title {
   font-size: 52px;
   font-weight: 700;
-  color: #111;
+  color: #ffffff;
   margin-bottom: 20px;
   line-height: 1.1;
 }
 
 .hero-text {
   font-size: 18px;
-  color: #555;
+  color: #9c9c9c;
   line-height: 1.6;
 }
 

@@ -40,6 +40,7 @@ const LibraryDisplay = () => {
   return (
     <div className="library-container">
       {/* Search input */}
+      
       <input
         type="text"
         placeholder="Procure por titulo ou autor..."
@@ -47,6 +48,8 @@ const LibraryDisplay = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+
+      
 
       <ul className="library-list">
         {loading ? (
@@ -65,11 +68,16 @@ const LibraryDisplay = () => {
           ))
         )}
       </ul>
+
+
       {filteredBooks.length > 3 && (
         <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
-          {showAll ? "Show Less" : "Show More"}
+          {showAll ? "Mostrar Menos" : "Mostrar Mais"}
         </button>
       )}
+
+
+      
     </div>
   );
 };
