@@ -9,19 +9,11 @@ export const generateToken = (userId, res) => {
 
   // CONFIGURAÇÃO DO COOKIE
   res.cookie("jwt", token, {
-    httpOnly: true,
-    // Se o seu backend já estiver no Render (HTTPS) e o front local, 'secure' PRECISA ser true e 'sameSite' PRECISA ser "none"
-    // Se AMBOS (front e back) estiverem rodando localmente (HTTP), use as linhas comentadas abaixo:
-    secure: true,
-    sameSite: "none",
-
-    /* Use esta configuração se estiver rodando TUDO (Back e Front) no seu PC:
-    secure: false,
-    sameSite: "lax",
-    */
-
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
-  });
+  httpOnly: true,
+  secure: true,        // OBRIGATÓRIO: Já que o backend está no Render (HTTPS)
+  sameSite: "none",    // OBRIGATÓRIO: Permite enviar de um site (Render) para outro (Localhost)
+  maxAge: 1000 * 60 * 60 * 24 * 7,
+});
 
   return token;
 };
