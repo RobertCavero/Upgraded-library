@@ -15,10 +15,10 @@ const LibraryDisplay = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Substitui o antigo controle por token manual
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // 1. Busca todos os livros do catálogo (Rota pública)
+    // 1. Busca todos os livros do catálogo (público)
     fetch("https://upgraded-library.onrender.com/books")
       .then((res) => res.json())
       .then((data) => {
@@ -30,16 +30,19 @@ const LibraryDisplay = () => {
         setLoading(false);
       });
 
-    // 2. Verifica se há um usuário ativo/validado via Cookie no Backend
-    // O axios envia o cookie automaticamente por conta do defaults.withCredentials = true
+    // 2. Verifica se há um usuário ativo injetando as credenciais do cookie
     axios
-      .get("https://upgraded-library.onrender.com/auth/me") // Use a mesma rota de checagem da sua Navbar
+      .get("https://upgraded-library.onrender.com/auth/me", {
+        withCredentials: true,
+      })
       .then(() => {
         setIsLoggedIn(true);
 
-        // Se o usuário está validado, busca os Favoritos
+        // Busca os Favoritos
         axios
-          .get("https://upgraded-library.onrender.com/favorites")
+          .get("https://upgraded-library.onrender.com/favorites", {
+            withCredentials: true,
+          })
           .then((res) => {
             const favList = res.data?.data?.favorites;
             if (Array.isArray(favList)) {
@@ -48,9 +51,11 @@ const LibraryDisplay = () => {
           })
           .catch((err) => console.error("Erro ao buscar favoritos:", err));
 
-        // E busca a Booklist
+        // Busca a Booklist
         axios
-          .get("https://upgraded-library.onrender.com/booklist")
+          .get("https://upgraded-library.onrender.com/booklist", {
+            withCredentials: true,
+          })
           .then((res) => {
             if (Array.isArray(res.data)) {
               setBooklist(res.data.map((item) => item.bookId || item.id));
@@ -59,7 +64,6 @@ const LibraryDisplay = () => {
           .catch((err) => console.error("Erro ao buscar booklist:", err));
       })
       .catch(() => {
-        // Se a rota /auth/me falhar (401/403), significa que não há cookie ou ele expirou
         setIsLoggedIn(false);
       });
   }, []);
@@ -74,17 +78,20 @@ const LibraryDisplay = () => {
 
     try {
       if (inList) {
-        // Removido o { headers } do objeto de configuração
+        // CORREÇÃO: Adicionado { withCredentials: true } no DELETE da Booklist
         await axios.delete(
           `https://upgraded-library.onrender.com/booklist/${bookId}`,
+          { withCredentials: true },
         );
         setBooklist(booklist.filter((id) => id !== bookId));
         setFavorites(favorites.filter((id) => id !== bookId));
       } else {
-        // Removido o { headers } do terceiro parâmetro
-        await axios.post("https://upgraded-library.onrender.com/booklist", {
-          bookId,
-        });
+        // CORREÇÃO: Adicionado { withCredentials: true } no POST da Booklist (3º parâmetro)
+        await axios.post(
+          "https://upgraded-library.onrender.com/booklist",
+          { bookId },
+          { withCredentials: true },
+        );
         setBooklist([...booklist, bookId]);
       }
     } catch (err) {
@@ -108,16 +115,16 @@ const LibraryDisplay = () => {
 
     try {
       if (isFav) {
-        // Removido o { headers }
         await axios.delete(
           `https://upgraded-library.onrender.com/favorites/${bookId}`,
+          { withCredentials: true },
         );
         setFavorites(favorites.filter((id) => id !== bookId));
       } else {
-        // Removido o { headers }, mantendo o corpo vazio {} exigido pelo POST
         await axios.post(
           `https://upgraded-library.onrender.com/favorites/${bookId}`,
           {},
+          { withCredentials: true },
         );
         setFavorites([...favorites, bookId]);
       }

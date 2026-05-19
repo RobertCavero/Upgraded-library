@@ -12,14 +12,16 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Faz uma chamada rápida para o backend para ver se o cookie é válido
+    // ADICIONADO: { withCredentials: true } como segundo parâmetro do get
     axios
-      .get("https://upgraded-library.onrender.com/auth/me") // <--- Substitua pela sua rota de checagem ou perfil
+      .get("https://upgraded-library.onrender.com/auth/me", {
+        withCredentials: true,
+      })
       .then(() => {
-        setIsLoggedIn(true); // Se o servidor responder 200, o usuário está logado
+        setIsLoggedIn(true);
       })
       .catch(() => {
-        setIsLoggedIn(false); // Se responder 401/403, o cookie expirou ou não existe
+        setIsLoggedIn(false);
       });
   }, [location]);
 

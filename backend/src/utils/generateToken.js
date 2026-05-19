@@ -7,11 +7,20 @@ export const generateToken = (userId, res) => {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 
+  // CONFIGURAÇÃO DO COOKIE
   res.cookie("jwt", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 1000 * 60 * 60 * 24 * 7,
+    // Se o seu backend já estiver no Render (HTTPS) e o front local, 'secure' PRECISA ser true e 'sameSite' PRECISA ser "none"
+    // Se AMBOS (front e back) estiverem rodando localmente (HTTP), use as linhas comentadas abaixo:
+    secure: true,
+    sameSite: "none",
+
+    /* Use esta configuração se estiver rodando TUDO (Back e Front) no seu PC:
+    secure: false,
+    sameSite: "lax",
+    */
+
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
   });
 
   return token;
