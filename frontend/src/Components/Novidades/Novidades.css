@@ -116,7 +116,7 @@
     gap: 15px;       /* Encurta um pouco o espaço entre os cards no mobile */
     overflow-x: auto; /* Permite que o usuário arraste os cards com o dedo se quiser */
     padding: 10px;   /* Espaço para a sombra do (:hover) não ser cortada */
-    justify-content: flex-start; /* Alinha os cards ao início para permitir o scroll */
+    justify-content: center; /* Alinha os cards ao início para permitir o scroll */
     
     /* Esconde a barra de rolagem feia do sistema para parecer um carrossel nativo */
     scrollbar-width: none; 
