@@ -2,12 +2,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100vh;
+  min-height: 100vh;
   padding: 0 80px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
   box-sizing: border-box;
   overflow: hidden;
-  background-image:
+  background:
     radial-gradient(
       circle at 70% 30%,
       rgba(2, 132, 199, 0.18) 0%,
@@ -25,7 +24,6 @@
 
 .hero-textbox {
   max-width: 520px;
-  animation: fadeIn 0.8s ease-in-out;
 }
 
 .hero-title {
@@ -48,51 +46,45 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  max-width: 520px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden; /* Corta o excesso do scale do GSAP com segurança */
 }
 
 .box-right img {
   width: 100%;
-  max-width: 520px;
   height: auto;
   object-fit: cover;
   border-radius: 16px;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.8s ease-in-out;
 }
 
-/* SIMPLE ANIMATIONS */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* RESPONSIVE */
+/* RESPONSIVIDADE (MOBILE & TABLET) */
 @media (max-width: 768px) {
   .hero {
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Mantém ocupando a tela cheia se preferir, ou mude para 'auto' */
+    padding: 60px 24px;
     text-align: center;
-    padding: 40px 20px;
+    gap: 40px;
+  }
+
+  .box-left {
+    justify-content: center;
+    width: 100%;
+    flex: none; /* Impede o flex de esmagar o texto */
+  }
+
+  .hero-textbox {
+    max-width: 100%;
   }
 
   .hero-title {
-    font-size: 36px;
+    font-size: 32px;
+    margin-bottom: 16px;
   }
 
   .hero-text {
@@ -100,10 +92,15 @@
   }
 
   .box-right {
-    margin-top: 30px;
+    width: 100%;
+    max-width: 400px; /* Tamanho limite ideal para celulares */
+    flex: none;
+    overflow: hidden; /* Mantido hidden para o efeito 'scale' não criar barra de rolagem lateral no celular */
   }
 
   .box-right img {
-    max-width: 90%;
+    width: 100%;
+    height: auto;
+    display: block;
   }
 }

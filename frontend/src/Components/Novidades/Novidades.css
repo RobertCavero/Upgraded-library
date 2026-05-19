@@ -3,6 +3,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
+  background-color: #F0F0F0 ;
+   /* Evita que os botões criem barra de rolagem indesejada */
 }
 
 .novidades-title{
@@ -14,10 +17,12 @@
 
 .carousel-container {
   position: relative;
+  width: 90%;        /* Ajuste crucial para dar respiro nas laterais */
   max-width: 1000px;
   margin: 40px auto;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .cards-wrapper {
@@ -91,4 +96,53 @@
 
 .prev-btn .icon {
   transform: rotate(180deg);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .novidades {
+    min-height: auto;
+    padding: 40px 0;
+  }
+
+  .carousel-container {
+    width: 100%;
+    padding: 0 15px; /* Margem interna para os botões não colarem na borda física do celular */
+    box-sizing: border-box;
+  }
+
+  .cards-wrapper {
+    width: 100%;     /* Remove os 700px fixos */
+    gap: 15px;       /* Encurta um pouco o espaço entre os cards no mobile */
+    overflow-x: auto; /* Permite que o usuário arraste os cards com o dedo se quiser */
+    padding: 10px;   /* Espaço para a sombra do (:hover) não ser cortada */
+    justify-content: flex-start; /* Alinha os cards ao início para permitir o scroll */
+    
+    /* Esconde a barra de rolagem feia do sistema para parecer um carrossel nativo */
+    scrollbar-width: none; 
+  }
+  
+  .cards-wrapper::-webkit-scrollbar {
+    display: none; 
+  }
+
+  .card {
+    flex: 0 0 220px; /* Garante que o card mantenha o tamanho de 220px e não encolha */
+  }
+
+  /* Reposiciona os botões para dentro do container no mobile */
+  .prev-btn {
+    left: 10px;
+  }
+
+  .next-btn {
+    right: 10px;
+  }
+
+  .prev-btn,
+  .next-btn {
+    background: rgba(0, 0, 0, 0.75); /* Escurece um pouco para dar mais contraste sobre os cards */
+    width: 36px;  /* Leve redução de tamanho para telas menores */
+    height: 36px;
+  }
 }

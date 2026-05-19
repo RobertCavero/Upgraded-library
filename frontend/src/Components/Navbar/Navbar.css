@@ -10,7 +10,6 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-
   overflow: visible; /* IMPORTANT */
 }
 
@@ -67,8 +66,6 @@
   cursor: pointer;
 }
 
-
-
 .btns {
   display: flex;
   gap: 10px;
@@ -91,4 +88,183 @@
   font-size: 16px;
   backdrop-filter: blur(12px);
   overflow: hidden;
+}
+
+/* No desktop, os ícones ficam escondidos por padrão */
+.menu-toggle {
+  display: none; /* Escondido no desktop */
+  flex-direction: column;
+  justify-content: space-between;
+  width: 22px;
+  height: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.menu-toggle span {
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+/* ==========================================================================
+   Media Query para Mobile (Telas até 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  
+  /* FORÇA o wrapper e os componentes internos a aceitarem elementos saindo para fora */
+  .navbar-wrapper,
+  .navbar-wrapper * {
+    overflow: visible !important;
+  }
+
+  .navbar-wrapper {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 450px;
+    z-index: 9999;
+  }
+
+  .navbar {
+    height: 54px;
+    padding: 0 16px !important;
+    border-radius: 30px;
+    position: relative;
+  }
+  .navbar-logo{
+    margin-right: 15px;
+  }
+
+  /* Botão hambúrguer */
+  .menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 22px;
+    height: 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10001;
+  }
+
+  /* Animação do X */
+  .menu-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .menu-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* CORRIGIDO: O Dropdown agora se auto-adapta ao tamanho necessário */
+  .nav-menu {
+    position: absolute;
+    top: 65px;
+    
+    /* Centralização dinâmica baseada no conteúdo */
+    left: 50%;
+    transform: translateX(-50%) translateY(-15px);
+    
+    /* Largura flexível baseada nos filhos internos */
+    width: max-content; 
+    min-width: 240px; /* Impede que fique magro se o conteúdo for pequeno */
+    max-width: 85vw;  /* Impede que morda as bordas de celulares ultra-pequenos */
+    
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(12px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px 32px; /* Mais espaço interno para os lados */
+    box-sizing: border-box;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+
+    /* Controle de exibição com suporte a transição suave */
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease,
+      visibility 0.3s ease;
+  }
+
+  /* Estado Aberto (Ativado pelo clique no React) */
+  .nav-menu.show {
+    display: flex; 
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0); /* Preserva a centralização do X */
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+  }
+
+  .navbar-links li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .navbar-links li a {
+    font-size: 16px;
+    display: block;
+    padding: 8px 0;
+    color: white;
+  }
+
+  .btns {
+    width: 100%;
+    padding: 0;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: visible !important;
+  }
+
+  /* CORRIGIDO: Botão alongado sem vazar o texto */
+  .btn-login {
+    display: block;
+    width: 100%;
+    max-width: 260px; /* Aumentado para acomodar o texto com folga */
+    font-size: 14px !important; /* Tamanho confortável para leitura */
+    padding: 12px 24px !important; /* Padding lateral que gera respiro interno */
+    text-align: center;
+    white-space: nowrap; /* Trava o texto em uma única linha */
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .btn-login:hover {
+    font-size: 14px !important; /* Trava o tamanho para não balançar no toque */
+  }
 }

@@ -13,3 +13,30 @@
     align-items: center;
     justify-content: center;
 }
+
+@media (max-width: 768px) {
+  
+  .login-page {
+    /* Troca height fixo por min-height usando dvh (Dynamic Viewport Height). 
+       Isso calcula o tamanho real da tela descontando as barras do navegador mobile. */
+    width: 100%;
+    min-height: 100dvh; 
+    height: auto; 
+
+    /* Adiciona um padding nas laterais e no topo para o card de login 
+       não encostar nas bordas físicas do celular e respirar caso a tela seja pequena */
+    padding: 40px 20px; 
+
+    /* Mantém os gradientes idênticos, mas reduz ligeiramente o raio (de 40% para 55%) 
+       para que as luzes apareçam melhor no formato vertical do celular */
+    background:
+        radial-gradient(circle at top left, rgba(128, 0, 255, 0.35), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(80, 0, 120, 0.4), transparent 55%),
+        linear-gradient(135deg, #0b0613, #140a1f, #1a1028);
+
+    /* Certifica que o flexbox vai empilhar ou rolar perfeitamente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

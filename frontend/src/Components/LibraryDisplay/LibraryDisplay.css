@@ -24,7 +24,7 @@
   color: white;
   width: 100%;
   max-width: 400px;
-  margin-bottom: 20px;
+  margin: 20px 0;
   padding: 10px 14px;
 
   border-radius: 12px;
@@ -192,4 +192,74 @@
 
 .no-books {
   color: white;
+}
+
+/* ==========================================================================
+   Media Query para Mobile (Telas até 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  
+  .library-container {
+    /* Reduz o padding do topo para o conteúdo subir e aproveitar a tela */
+    padding: 60px 16px 24px; 
+  }
+
+  .search-bar {
+    /* Garante que a barra de pesquisa use quase toda a largura disponível */
+    width: 90%;
+    max-width: none;
+    font-size: 16px; /* Evita o zoom automático do iOS ao focar no input */
+    margin-top: 50px;
+  }
+
+  .library-list {
+    /* Ajusta o Grid para se adaptar dinamicamente em telas pequenas.
+       Se a tela for muito pequena, ele quebra para 1 coluna automaticamente. */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; /* Reduz o espaçamento entre os cards */
+  }
+
+  .book {
+    padding: 12px; /* Reduz o padding interno do card do livro */
+  }
+
+  .img-book {
+    /* Torna a imagem responsiva para não quebrar o card em telas mini */
+    width: 100%;
+    max-width: 110px;
+    height: 160px;
+  }
+
+  .book-title {
+    font-size: 14px; /* Diminui um pouco a fonte do título */
+  }
+
+  .book-author, .book-year {
+    font-size: 12px; /* Diminui as fontes secundárias */
+  }
+
+  .book-desc {
+    display: none; /* Opcional: Oculta a descrição no mobile para economizar espaço vertical */
+  }
+
+  .book-actions {
+    top: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .show-more-btn {
+    /* Ajusta a posição sticky no mobile para não sobrepor o topo fixo */
+    position: relative;
+    top: 0;
+    margin-top: 20px;
+    width: 80%;
+    text-align: center;
+  }
 }
