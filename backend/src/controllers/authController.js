@@ -2,100 +2,151 @@ import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 
+// Helper function to handle standard internal errors without duplicating code
+const handleServerError = (
+  res,
+  error,
+  customMessage = "Internal server error",
+) => {
+  console.error(`${customMessage}:`, error);
+  return res.status(500).json({ error: "Ocorreu um erro no servidor." });
+};
+
 const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-  const userExists = await prisma.user.findUnique({
-    where: { email: email },
-  });
+    // 1. Basic Payload Validation
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Todos os campos são obrigatórios." });
+    }
 
-  if (userExists) {
-    return res.status(400).json({
-      error: "User already exists with this email",
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 2. Check if user exists
+    const userExists = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
     });
-  }
 
-  //Hash Password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+    if (userExists) {
+      return res.status(400).json({ error: "Este e-mail já está em uso." });
+    }
 
-  //Create User
+    // 3. Hash Password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  const token = generateToken(user.id, res);
-
-  res.status(201).json({
-    status: "success",
-    data: {
-      user: {
-        id: user.id,
-        name: name,
-        email: email,
+    // 4. Create User
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        password: hashedPassword,
       },
-      token,
-    },
+    });
 
-  });
+    // 5. Generate authentication session/token
+    const token = generateToken(user.id, res);
+
+    return res.status(201).json({
+      status: "success",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        token, // Included if you are also writing tokens to local storage fallback
+      },
+    });
+  } catch (error) {
+    return handleServerError(res, error, "Erro no registro de usuário");
+  }
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: { email: email },
-  });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "E-mail e senha são obrigatórios." });
+    }
 
-  if (!user) {
-    return res.status(400).json({ error: "Invalid email or password" });
-  }
+    const normalizedEmail = email.toLowerCase().trim();
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Find User
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
-  if (!isPasswordValid) {
-    return res.status(401).json({ error: "Invalid email or password" });
-  }
+    // Timing/Security fallback: If user doesn't exist, run a dummy bcrypt compare
+    // to prevent timing attacks that reveal if an email exists.
+    const validPassword = user
+      ? await bcrypt.compare(password, user.password)
+      : await bcrypt.compare(
+          "dummy_password",
+          "$2a$10$dummyhashdummyhashdummyhash",
+        );
 
-  const token = generateToken(user.id, res);
+    // Uniform 401 response regardless of which field was invalid
+    if (!user || !validPassword) {
+      return res.status(401).json({ error: "E-mail ou senha incorretos." });
+    }
 
+    const token = generateToken(user.id, res);
 
-  res.status(201).json({
-    status: "success",
-    data: {
-      user: {
-        id: user.id,
-        email: email,
+    // CORREÇÃO: Alterado de 201 para 200 OK
+    return res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        token,
       },
-      token,
-    },
-  });
+    });
+  } catch (error) {
+    return handleServerError(res, error, "Erro no login de usuário");
+  }
 };
 
+const logout = async (req, res) => {
+  try {
+    // Clear cookie parameters should match your initialization flags (Secure, SameSite, etc.)
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      expires: new Date(0),
+    });
 
-const logout = async (req, res) =>{
-  res.cookie("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0)
-  })
-  res.status(200).json({
-    status: "success",
-    message: "Logged out successfully",
-  })
-}
+    return res.status(200).json({
+      status: "success",
+      message: "Deslogado com sucesso.",
+    });
+  } catch (error) {
+    return handleServerError(res, error, "Erro no logout");
+  }
+};
 
 const me = async (req, res) => {
-  res.status(200).json({
-    user: req.user,
+  // If req.user is populated by your auth middleware, return it securely
+  if (!req.user) {
+    return res.status(401).json({ error: "Não autorizado." });
+  }
+
+  // Ensure you aren't returning the hashed password from the middleware mapping
+  const { password, ...safeUserData } = req.user;
+
+  return res.status(200).json({
+    user: safeUserData,
   });
 };
-
-
-
 
 export { register, login, logout, me };
