@@ -28,7 +28,7 @@ const Navbar = () => {
 
           <div className="btns">
             <button className="btn-login" onClick={() => navigate("/login")}>
-              Login / Registrar
+              Seja Membro!
             </button>
           </div>
         </div>

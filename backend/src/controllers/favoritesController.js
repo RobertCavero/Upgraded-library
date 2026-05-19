@@ -4,7 +4,7 @@ import { prisma } from "../config/db.js";
  * Toggle favorite (add/remove favorite in booklist item)
  */
 const toggleFavorite = async (req, res) => {
-  const { bookId } = req.body;
+  const { bookId } = req.params;
 
   const bookListItem = await prisma.bookListItem.findUnique({
     where: {

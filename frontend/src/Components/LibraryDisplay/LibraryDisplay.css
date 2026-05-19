@@ -83,12 +83,65 @@
   flex-direction: column;
   align-items: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  /* CRUCIAL: Mantém os botões absolutos ancorados dentro deste card */
+  position: relative; 
 }
 
 .book:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
+
+/* ==========================================================================
+   NOVOS ESTILOS: BOTÕES DE AÇÃO (FAVORITOS E BOOKLIST)
+   ========================================================================== */
+
+/* Container que agrupa os dois botões no topo direito do card do livro */
+.book-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column; /* Organiza os botões um abaixo do outro */
+  gap: 8px;
+  z-index: 5;
+}
+
+/* Estilo base compartilhado pelos dois botões redondos */
+.action-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  color: #888888;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Efeito ao passar o mouse por cima do botão */
+.action-btn:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+}
+
+/* Estado ativo do botão de favoritos (Coração Vermelho) */
+.fav-btn.active {
+  color: #e74c3c;
+}
+
+/* Estado ativo do botão de booklist (Marcador Amarelo/Dourado) */
+.list-btn.active {
+  color: #f1c40f;
+}
+
+/* ========================================================================== */
 
 .img-book {
   width: 120px;
@@ -131,7 +184,7 @@
   overflow: hidden;
 }
 
-.show-more-btn{
+.show-more-btn {
   font-size: 14px;
   font-weight: 500;
   background-color: #4facfe;
