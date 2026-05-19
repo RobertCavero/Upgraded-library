@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import axios from "axios";
 import "./Navbar.css";
 import bookIcon from "../../assets/book-icon.svg";
 import GlowBorder from "../Effects/GlowBorder/GlowBorder";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Link } from "react-router-dom";
-import axios from "axios";
 
-axios.defaults.withCredentials = true;
+// Create a dedicated API instance to avoid polluting global Axios defaults
+const api = axios.create({
+  baseURL: "https://upgraded-library.onrender.com",
+  withCredentials: true,
+});
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -14,46 +17,82 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Busca os dados do usuário. Se não houver cookie (deslogado), o 401 é silenciado.
-    axios
-      .get("https://upgraded-library.onrender.com/auth/me")
-      .then(() => {
-        setIsLoggedIn(true);
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-      });
-  }, [location]); // Roda toda vez que o usuário muda de página
+    let isMounted = true;
+
+    const checkAuth = async () => {
+      try {
+        await api.get("/auth/me");
+        if (isMounted) setIsLoggedIn(true);
+      } catch {
+        if (isMounted) setIsLoggedIn(false);
+      }
+    };
+
+    checkAuth();
+
+    return () => {
+      isMounted = false; // Prevents memory leaks / setting state on unmounted components
+    };
+    // REMOVED 'location' dependency.
+    // Ideally, pass an auth check function from a React Context provider instead.
+  }, []);
 
   const handleLogout = async () => {
     try {
-      // CORREÇÃO: Informa ao Axios para enviar o cookie no logout, permitindo que o backend o destrua
-      await axios.post("https://upgraded-library.onrender.com/auth/logout");
+      await api.post("/auth/logout");
     } catch (err) {
       console.error("Erro ao deslogar no servidor", err);
+    } finally {
+      // Moves state cleanup to 'finally' so the UI resets even if the network fails
+      setIsLoggedIn(false);
+      navigate("/");
     }
-    // Remove o estado e limpa a interface de qualquer forma
-    setIsLoggedIn(false);
-    navigate("/");
   };
 
   return (
     <div className="navbar-wrapper">
       <GlowBorder speed={3}>
         <div className="navbar">
-          <img className="navbar-logo" src={bookIcon} alt="book-icon" />
+          <Link to="/" className="navbar-logo-link">
+            <img
+              className="navbar-logo"
+              src={bookIcon}
+              alt="Logotipo da Biblioteca"
+            />
+          </Link>
 
-          <ul className="navbar-links">
-            <li>
-              <Link to="/">Inicio</Link>
-            </li>
-            <li>
-              <Link to="/catalogo">Catálogo</Link>
-            </li>
-            <li>
-              <Link to="/perfil">Perfil</Link>
-            </li>
-          </ul>
+          <nav aria-label="Menu principal">
+            <ul className="navbar-links">
+              <li>
+                <Link
+                  to="/"
+                  className={location.pathname === "/" ? "active-link" : ""}
+                >
+                  Início
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/catalogo"
+                  className={
+                    location.pathname === "/catalogo" ? "active-link" : ""
+                  }
+                >
+                  Catálogo
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/perfil"
+                  className={
+                    location.pathname === "/perfil" ? "active-link" : ""
+                  }
+                >
+                  Perfil
+                </Link>
+              </li>
+            </ul>
+          </nav>
 
           <div className="btns">
             {isLoggedIn ? (

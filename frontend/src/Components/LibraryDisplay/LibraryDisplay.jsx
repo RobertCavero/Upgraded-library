@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import "./LibraryDisplay.css";
 
-const LibraryDisplay = () => {
-  const normalizeText = (text) =>
-    text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+// Move utility functions outside the component so they aren't recreated on every render
+const normalizeText = (text) =>
+  String(text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
+// Configure a base axios instance to avoid repeating URLs and configs
+const api = axios.create({
+  baseURL: "https://upgraded-library.onrender.com",
+  withCredentials: true,
+});
+
+const LibraryDisplay = () => {
   const [books, setBooks] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [booklist, setBooklist] = useState([]);
@@ -17,89 +24,98 @@ const LibraryDisplay = () => {
   const [showAll, setShowAll] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    // 1. Busca todos os livros do catálogo (público)
-    fetch("https://upgraded-library.onrender.com/books")
-      .then((res) => res.json())
-      .then((data) => {
-        setBooks(data.data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar livros:", err);
-        setLoading(false);
-      });
+  // Fetch user data (Favorites & Booklist) if logged in
+  const fetchUserData = useCallback(async () => {
+    try {
+      // Run both requests in parallel to save time
+      const [favRes, listRes] = await Promise.all([
+        api.get("/favorites"),
+        api.get("/booklist"),
+      ]);
 
-    // 2. Verifica se há um usuário ativo injetando as credenciais do cookie
-    axios
-      .get("https://upgraded-library.onrender.com/auth/me", {
-        withCredentials: true,
-      })
-      .then(() => {
-        setIsLoggedIn(true);
+      const favList = favRes.data?.data?.favorites;
+      if (Array.isArray(favList)) {
+        setFavorites(favList.map((item) => item.bookId));
+      }
 
-        // Busca os Favoritos
-        axios
-          .get("https://upgraded-library.onrender.com/favorites", {
-            withCredentials: true,
-          })
-          .then((res) => {
-            const favList = res.data?.data?.favorites;
-            if (Array.isArray(favList)) {
-              setFavorites(favList.map((item) => item.bookId));
-            }
-          })
-          .catch((err) => console.error("Erro ao buscar favoritos:", err));
-
-        // Busca a Booklist
-        axios
-          .get("https://upgraded-library.onrender.com/booklist", {
-            withCredentials: true,
-          })
-          .then((res) => {
-            if (Array.isArray(res.data)) {
-              setBooklist(res.data.map((item) => item.bookId || item.id));
-            }
-          })
-          .catch((err) => console.error("Erro ao buscar booklist:", err));
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-      });
+      if (Array.isArray(listRes.data)) {
+        setBooklist(listRes.data.map((item) => item.bookId || item.id));
+      }
+    } catch (err) {
+      console.error("Error fetching user library data:", err);
+    }
   }, []);
 
-  // Função para salvar/remover da Booklist
+  // Main initialization effect
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeData = async () => {
+      try {
+        // 1. Fetch public books
+        const booksRes = await api.get("/books");
+        if (isMounted) setBooks(booksRes.data?.data || []);
+
+        // 2. Check Authentication
+        await api.get("/auth/me");
+        if (isMounted) {
+          setIsLoggedIn(true);
+          await fetchUserData();
+        }
+      } catch (err) {
+        console.error(
+          "Initialization error (User might be unauthenticated):",
+          err,
+        );
+        if (isMounted) setIsLoggedIn(false);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false; // Clean up to prevent memory leaks on unmounted component
+    };
+  }, [fetchUserData]);
+
+  // Toggle Booklist
   const toggleBooklist = async (bookId) => {
     if (!isLoggedIn) {
       alert("Você precisa estar logado para gerenciar sua lista!");
       return;
     }
+
     const inList = booklist.includes(bookId);
+
+    // Optimistic UI updates update state instantly for a snappy feel, revert if API fails
+    const previousBooklist = [...booklist];
+    const previousFavorites = [...favorites];
+
+    if (inList) {
+      setBooklist((prev) => prev.filter((id) => id !== bookId));
+      setFavorites((prev) => prev.filter((id) => id !== bookId)); // Removing from booklist removes from favs
+    } else {
+      setBooklist((prev) => [...prev, bookId]);
+    }
 
     try {
       if (inList) {
-        // CORREÇÃO: Adicionado { withCredentials: true } no DELETE da Booklist
-        await axios.delete(
-          `https://upgraded-library.onrender.com/booklist/${bookId}`,
-          { withCredentials: true },
-        );
-        setBooklist(booklist.filter((id) => id !== bookId));
-        setFavorites(favorites.filter((id) => id !== bookId));
+        await api.delete(`/booklist/${bookId}`);
       } else {
-        // CORREÇÃO: Adicionado { withCredentials: true } no POST da Booklist (3º parâmetro)
-        await axios.post(
-          "https://upgraded-library.onrender.com/booklist",
-          { bookId },
-          { withCredentials: true },
-        );
-        setBooklist([...booklist, bookId]);
+        await api.post("/booklist", { bookId });
       }
     } catch (err) {
       console.error("Erro ao atualizar booklist:", err);
+      alert("Não foi possível atualizar sua lista. Tente novamente.");
+      // Rollback state on failure
+      setBooklist(previousBooklist);
+      setFavorites(previousFavorites);
     }
   };
 
-  // Função para Alternar Favorito (Coração)
+  // Toggle Favorite
   const toggleFavorite = async (bookId) => {
     if (!isLoggedIn) {
       alert("Você precisa estar logado para favoritar um livro!");
@@ -112,42 +128,47 @@ const LibraryDisplay = () => {
     }
 
     const isFav = favorites.includes(bookId);
+    const previousFavorites = [...favorites];
+
+    // Optimistic update
+    setFavorites((prev) =>
+      isFav ? prev.filter((id) => id !== bookId) : [...prev, bookId],
+    );
 
     try {
       if (isFav) {
-        await axios.delete(
-          `https://upgraded-library.onrender.com/favorites/${bookId}`,
-          { withCredentials: true },
-        );
-        setFavorites(favorites.filter((id) => id !== bookId));
+        await api.delete(`/favorites/${bookId}`);
       } else {
-        await axios.post(
-          `https://upgraded-library.onrender.com/favorites/${bookId}`,
-          {},
-          { withCredentials: true },
-        );
-        setFavorites([...favorites, bookId]);
+        await api.post(`/favorites/${bookId}`);
       }
     } catch (err) {
       console.error("Erro ao atualizar favorito:", err);
       alert("Não foi possível atualizar o favorito.");
+      setFavorites(previousFavorites); // Rollback
     }
   };
 
-  const filteredBooks = books.filter((book) => {
-    const title = normalizeText(book.title ?? "");
-    const author = normalizeText(book.author ?? "");
+  // Memoize filtering so it doesn't run on unrelated state changes (like showAll toggles)
+  const filteredBooks = useMemo(() => {
     const query = normalizeText(search);
-    return title.includes(query) || author.includes(query);
-  });
+    if (!query) return books;
 
-  const displayedBooks = showAll ? filteredBooks : filteredBooks.slice(0, 3);
+    return books.filter((book) => {
+      const title = normalizeText(book.title);
+      const author = normalizeText(book.author);
+      return title.includes(query) || author.includes(query);
+    });
+  }, [books, search]);
+
+  const displayedBooks = useMemo(() => {
+    return showAll ? filteredBooks : filteredBooks.slice(0, 3);
+  }, [filteredBooks, showAll]);
 
   return (
     <div className="library-container">
       <input
         type="text"
-        placeholder="Procure por titulo ou autor..."
+        placeholder="Procure por título ou autor..."
         className="search-bar"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -187,7 +208,12 @@ const LibraryDisplay = () => {
                   </button>
                 </div>
 
-                <img className="img-book" src={book.img} alt={book.title} />
+                <img
+                  className="img-book"
+                  src={book.img}
+                  alt={book.title}
+                  loading="lazy"
+                />
                 <p className="book-title">{book.title}</p>
                 <p className="book-author">{book.author}</p>
                 <p className="book-year">{book.releaseYear}</p>
