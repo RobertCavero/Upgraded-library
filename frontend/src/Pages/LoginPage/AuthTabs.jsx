@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import axios from "axios";
-
+axios.defaults.withCredentials = true;
 const API_URL = "https://upgraded-library.onrender.com/auth"; // Mude para a URL do seu backend
 
 // Se estiver usando Cookies com cookie-parser no backend, descomente a linha abaixo:
@@ -35,36 +35,35 @@ export default function AuthTabs() {
   };
 
   // 1. EVENTO DE LOGIN
-  const handleLogin = async (e) => {
-    e.preventDefault(); // Impede a página de recarregar
-    setErrorMessage("");
-    setSuccessMessage("");
+  // 1. EVENTO DE LOGIN (Atualizado para Cookies)
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setErrorMessage("");
+  setSuccessMessage("");
 
-    try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email: loginEmail,
-        password: loginPassword,
-      });
+  try {
+    const response = await axios.post(`${API_URL}/login`, {
+      email: loginEmail,
+      password: loginPassword,
+    }, {
+      withCredentials: true // Garante que o cookie enviado pelo backend seja aceito
+    });
 
-      setSuccessMessage("Login realizado com sucesso!");
-      console.log("Dados do Backend:", response.data);
+    setSuccessMessage("Login realizado com sucesso!");
+    console.log("Dados do Backend:", response.data);
 
-      // Se seu backend retorna o token no JSON e você usa LocalStorage:
-      if (response.data.data?.token) {
-        localStorage.setItem("userToken", response.data.data.token);
-      }
+    // REMOVIDO: localStorage.setItem("userToken", ...);
+    // O cookie HttpOnly já foi guardado automaticamente pelo navegador aqui!
 
-      setTimeout(() => {
-        navigate("/perfil"); 
-      }, 1500);
+    setTimeout(() => {
+      navigate("/perfil"); 
+    }, 1500);
 
-      // Aqui você redirecionaria o usuário (ex: usando useNavigate do react-router)
-    } catch (error) {
-      // Pega a mensagem de erro vinda do seu backend
-      const message = error.response?.data?.error || "Erro ao fazer login.";
-      setErrorMessage(message);
-    }
-  };
+  } catch (error) {
+    const message = error.response?.data?.error || "Erro ao fazer login.";
+    setErrorMessage(message);
+  }
+};
 
   // 2. EVENTO DE REGISTRO
   const handleRegister = async (e) => {

@@ -15,11 +15,10 @@ const LibraryDisplay = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-
-  const token = localStorage.getItem("userToken");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Substitui o antigo controle por token manual
 
   useEffect(() => {
-    // 1. Busca todos os livros do catálogo
+    // 1. Busca todos os livros do catálogo (Rota pública)
     fetch("https://upgraded-library.onrender.com/books")
       .then((res) => res.json())
       .then((data) => {
@@ -31,60 +30,61 @@ const LibraryDisplay = () => {
         setLoading(false);
       });
 
-    // 2. Busca os Favoritos e a Booklist se o usuário estiver logado
-    if (token) {
-      const headers = { Authorization: `Bearer ${token}` };
+    // 2. Verifica se há um usuário ativo/validado via Cookie no Backend
+    // O axios envia o cookie automaticamente por conta do defaults.withCredentials = true
+    axios
+      .get("https://upgraded-library.onrender.com/auth/me") // Use a mesma rota de checagem da sua Navbar
+      .then(() => {
+        setIsLoggedIn(true);
 
-      // Busca Favoritos
-      axios
-        .get("https://upgraded-library.onrender.com/favorites", { headers })
-        .then((res) => {
-          // O seu backend retorna: { status: 'success', data: { favorites: [...] } }
-          const favList = res.data?.data?.favorites;
-          if (Array.isArray(favList)) {
-            setFavorites(favList.map((item) => item.bookId));
-          }
-        })
-        .catch((err) => console.error("Erro ao buscar favoritos:", err));
+        // Se o usuário está validado, busca os Favoritos
+        axios
+          .get("https://upgraded-library.onrender.com/favorites")
+          .then((res) => {
+            const favList = res.data?.data?.favorites;
+            if (Array.isArray(favList)) {
+              setFavorites(favList.map((item) => item.bookId));
+            }
+          })
+          .catch((err) => console.error("Erro ao buscar favoritos:", err));
 
-      // Busca Booklist
-      axios
-        .get("https://upgraded-library.onrender.com/booklist", { headers })
-        .then((res) => {
-          // O seu backend retorna a array direto na raiz: [{...}]
-          if (Array.isArray(res.data)) {
-            setBooklist(res.data.map((item) => item.bookId || item.id));
-          }
-        })
-        .catch((err) => console.error("Erro ao buscar booklist:", err));
-    }
-  }, [token]);
+        // E busca a Booklist
+        axios
+          .get("https://upgraded-library.onrender.com/booklist")
+          .then((res) => {
+            if (Array.isArray(res.data)) {
+              setBooklist(res.data.map((item) => item.bookId || item.id));
+            }
+          })
+          .catch((err) => console.error("Erro ao buscar booklist:", err));
+      })
+      .catch(() => {
+        // Se a rota /auth/me falhar (401/403), significa que não há cookie ou ele expirou
+        setIsLoggedIn(false);
+      });
+  }, []);
 
   // Função para salvar/remover da Booklist
   const toggleBooklist = async (bookId) => {
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Você precisa estar logado para gerenciar sua lista!");
       return;
     }
     const inList = booklist.includes(bookId);
-    const headers = { Authorization: `Bearer ${token}` };
 
     try {
       if (inList) {
+        // Removido o { headers } do objeto de configuração
         await axios.delete(
           `https://upgraded-library.onrender.com/booklist/${bookId}`,
-          { headers },
         );
         setBooklist(booklist.filter((id) => id !== bookId));
-        // Se remover da booklist, remove automaticamente dos favoritos visualmente
-        // já que o Prisma exige que o item esteja na lista para ser favorito
         setFavorites(favorites.filter((id) => id !== bookId));
       } else {
-        await axios.post(
-          "https://upgraded-library.onrender.com/booklist",
-          { bookId },
-          { headers },
-        );
+        // Removido o { headers } do terceiro parâmetro
+        await axios.post("https://upgraded-library.onrender.com/booklist", {
+          bookId,
+        });
         setBooklist([...booklist, bookId]);
       }
     } catch (err) {
@@ -94,35 +94,30 @@ const LibraryDisplay = () => {
 
   // Função para Alternar Favorito (Coração)
   const toggleFavorite = async (bookId) => {
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Você precisa estar logado para favoritar um livro!");
       return;
     }
 
-    // Validação da regra do seu Banco de Dados (Prisma):
-    // Só pode favoritar se o item já estiver salvo na Booklist
     if (!booklist.includes(bookId)) {
       alert("Adicione o livro à sua Booklist antes de favoritá-lo!");
       return;
     }
 
     const isFav = favorites.includes(bookId);
-    const headers = { Authorization: `Bearer ${token}` };
 
     try {
       if (isFav) {
-        // DELETE na URL /favorites/:bookId
+        // Removido o { headers }
         await axios.delete(
           `https://upgraded-library.onrender.com/favorites/${bookId}`,
-          { headers },
         );
         setFavorites(favorites.filter((id) => id !== bookId));
       } else {
-        // POST na URL /favorites/:bookId (Passando corpo vazio {} porque o ID vai na URL)
+        // Removido o { headers }, mantendo o corpo vazio {} exigido pelo POST
         await axios.post(
           `https://upgraded-library.onrender.com/favorites/${bookId}`,
           {},
-          { headers },
         );
         setFavorites([...favorites, bookId]);
       }

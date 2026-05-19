@@ -1,6 +1,6 @@
 import "dotenv/config";
 import cors from 'cors';
-
+import cookieParser from "cookie-parser"; // 1. Importe o pacote aqui
 import express from "express";
 
 import { connectDB, disconnectDB } from "./config/db.js";
@@ -21,6 +21,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/books", bookRoutes);
