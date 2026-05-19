@@ -57,6 +57,7 @@ model BookListItem{
   status BookListStatus @default(PLANNED)
   rating Int?
   notes String?
+  isFavorite Boolean @default(false)
 
 
   createdAt DateTime @default(now())

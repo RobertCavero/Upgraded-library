@@ -8,7 +8,7 @@ router.get("/dashboard", authMiddleware, requireRole("ADMIN"), (req, res)=>{
     res.json({message: "Admin dashboard data"})
 })
 
-router.get("/user", authMiddleware, requireRole("ADMIN"), (req, res)=>{
+router.get("/users", authMiddleware, requireRole("ADMIN"), (req, res)=>{
     res.json({message: "List of users (admin only)"})
 })
 
